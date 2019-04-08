@@ -1,0 +1,22 @@
+language: julia
+julia:
+    - 0.6
+    - nightly
+sudo: required
+dist: trusty
+
+notification: 
+    email: false
+
+before_install:
+    - wget -q -O /tmp/install-icc.sh "https://raw.githubusercontent.com/sunoru/julia-icc-travis/master/install-icc.sh"
+    - chmod 755 /tmp/install-icc.sh
+    - sudo /tmp/install-icc.sh --components mkl --dest /opt/intel --tmpdir /root/tmp || exit 1
+    # only install mkl
+    - . ~/.bashrc
+
+script:
+    - julia -e 'Pkg.clone(pwd()); Pkg.test("VSL", coverage=true)'
+
+after_success:
+    - julia -e 'cd(Pkg.dir("VSL")); Pkg.add("Coverage"); using Coverage; Codecov.submit(process_folder())'
